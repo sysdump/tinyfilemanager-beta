@@ -170,6 +170,9 @@ if (is_readable($config_file)) {
     @include($config_file);
 }
 
+define('ACE_FONTSIZE', isset($ace_fontsize) ? $ace_fontsize : 12);
+define('ACE_THEME', isset($ace_theme) ? $ace_theme : 'textmate');
+
 // External CDN resources that can be used in the HTML (replace for GDPR compliance)
 $external = array(
     'css-bootstrap' => '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">',
@@ -1699,8 +1702,8 @@ if (isset($_GET['help'])) {
                         <p>
                         <h3><a href="https://github.com/prasathmani/tinyfilemanager" target="_blank" class="app-v-title"> <?php echo lng("AppName")." ".VERSION; ?></a></h3>
                         </p>
-                        <p>Author: PRAŚATH MANİ</p>
-                        <p>Mail Us: <a href="mailto:ccpprogrammers@gmail.com">ccpprogrammers [at] gmail [dot] com</a> </p>
+                        <p><strong><?php echo lng('Author') ?></strong>: PRAŚATH MANİ</p>
+                        <p><strong><?php echo lng('Mail Us') ?></strong>: <a href="mailto:ccpprogrammers@gmail.com">ccpprogrammers [at] gmail [dot] com</a></p>
                     </div>
                     <div class="col-xs-12 col-sm-6">
                         <div class="card">
@@ -2588,7 +2591,9 @@ function fm_get_mime_type($file_path)
     if (function_exists('finfo_open')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $file_path);
-        finfo_close($finfo);
+        if (\PHP_VERSION_ID < 80000) {
+            finfo_close($finfo);
+        }
         return $mime;
     } elseif (function_exists('mime_content_type')) {
         return mime_content_type($file_path);
@@ -2725,7 +2730,10 @@ function fm_is_exclude_items($name, $path)
 function fm_get_translations($tr)
 {
     try {
-        $content = @file_get_contents('translation.json');
+        static $content = null;
+        if ($content === null) {
+            $content = @file_get_contents('translation.json');
+        }
         if ($content !== FALSE) {
             $lng = json_decode($content, TRUE);
             global $lang_list;
@@ -5202,7 +5210,7 @@ function fm_show_header_login()
                     path: "ace/mode/<?php echo $ext; ?>",
                     inline: true
                 });
-                //editor.setTheme("ace/theme/twilight"); // Dark Theme
+                editor.setTheme("ace/theme/<?php echo ACE_THEME; ?>"); // Dark Theme
                 editor.setShowPrintMargin(false); // Hide the vertical ruler
                 function ace_commend(cmd) {
                     editor.commands.exec(cmd, editor);
@@ -5461,8 +5469,9 @@ function fm_show_header_login()
                     $modeEl.val(editor.getSession().$modeId);
                     $themeEl.val(editor.getTheme());
                     $(function() {
-                        //set default font size in drop down
-                        $fontSizeEl.val(12).change();
+                        // Apply font size directly, then sync dropdown
+                        editor.setFontSize(<?php echo (int) ACE_FONTSIZE; ?>);
+                        $fontSizeEl.val(<?php echo (int) ACE_FONTSIZE; ?>);
                     });
                 }
 
@@ -5565,7 +5574,6 @@ function fm_show_header_login()
         $tr['en']['BackUp']         = 'Back Up';
         $tr['en']['SourceFolder']   = 'Source Folder';
         $tr['en']['Files']          = 'Files';
-        $tr['en']['Move']           = 'Move';
         $tr['en']['Change']         = 'Change';
         $tr['en']['Settings']       = 'Settings';
         $tr['en']['Language']       = 'Language';
@@ -5627,6 +5635,55 @@ function fm_show_header_login()
         $tr['en']['File size']                                      = 'File size';
         $tr['en']['MIME-type']                                      = 'MIME-type';
         $tr['en']['a files']                                        = 'files';
+// Pre-existing inputs that were never inserted into the lng() function
+        $tr['en']['Cannot open file! Aborting download'] = 'Cannot open file! Aborting download';
+        $tr['en']['Charset']            = 'Charset';
+        $tr['en']['Compression']        = 'Compression';
+        $tr['en']['dark']               = 'dark';
+        $tr['en']['light']              = 'light';
+        $tr['en']['ERROR: Try again later!'] = 'ERROR: Try again later!';
+        $tr['en']['Enter here...']      = 'Enter here...';
+        $tr['en']['Enter new file name'] = 'Enter new file name';
+        $tr['en']['Error']              = 'Error';
+        $tr['en']['Error while copying items'] = 'Error while copying items';
+        $tr['en']['Error while moving items']  = 'Error while moving items';
+        $tr['en']['Error: try again']   = 'Error: try again';
+        $tr['en']['Execute']            = 'Execute';
+        $tr['en']['Files in archive']   = 'Files in archive';
+        $tr['en']['Fullscreen']         = 'Fullscreen';
+        $tr['en']['Group']              = 'Group';
+        $tr['en']['Image size']         = 'Image size';
+        $tr['en']['Invalid Token.']     = 'Invalid Token.';
+        $tr['en']['No result found!']   = 'No result found!';
+        $tr['en']['not created']        = 'not created';
+        $tr['en']['not deleted']        = 'not deleted';
+        $tr['en']['OOPS: minimum 3 characters required!'] = 'OOPS: minimum 3 characters required!';
+        $tr['en']['Okay']               = 'Okay';
+        $tr['en']['Other']              = 'Other';
+        $tr['en']['Read']               = 'Read';
+        $tr['en']['Redo']               = 'Redo';
+        $tr['en']['Select Document Type'] = 'Select Document Type';
+        $tr['en']['Select Font Size']   = 'Select Font Size';
+        $tr['en']['Select Mode']        = 'Select Mode';
+        $tr['en']['Select Theme']       = 'Select Theme';
+        $tr['en']['Selected files and folders copied'] = 'Selected files and folders copied';
+        $tr['en']['Selected files and folders moved']  = 'Selected files and folders moved';
+        $tr['en']['Size in archive']    = 'Size in archive';
+        $tr['en']['Sometimes the save action may not work on the first try, so please attempt it again'] = 'Sometimes the save action may not work on the first try, so please attempt it again';
+        $tr['en']['Tar']                = 'Tar';
+        $tr['en']['Theme']              = 'Theme';
+        $tr['en']['Total size']         = 'Total size';
+        $tr['en']['Unable to create destination folder'] = 'Unable to create destination folder';
+        $tr['en']['Undo']               = 'Undo';
+        $tr['en']['Upload from URL']    = 'Upload from URL';
+        $tr['en']['Uploaded Successful'] = 'Uploaded Successful';
+        $tr['en']['Word Wrap']          = 'Word Wrap';
+        $tr['en']['Write']              = 'Write';
+        $tr['en']['Zero byte file! Aborting download'] = 'Zero byte file! Aborting download';
+        $tr['en']['Zip']                = 'Zip';
+// New entries, which deserve to be translated
+        $tr['en']['Author']             = 'Author';
+        $tr['en']['Mail Us']            = 'Mail Us';
 
         $i18n = fm_get_translations($tr);
         $tr = $i18n ? $i18n : $tr;
